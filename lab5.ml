@@ -264,20 +264,20 @@ module MakeImpQueue (A : sig
     let empty () = {front = ref Nil; rear = ref Nil} 
     let enq x q = 
       match !(q.rear) with
-      | Cons(_h,t) -> (assert (!t = Nil);
-                      t := Cons(x,ref Nil);
-                      q.rear := !t)
-      | Nil -> (assert (!(q.front) = Nil); 
-                q.front := Cons(x,ref Nil);
-                q.rear := !(q.front))
+      | Cons(_h, t) -> assert (!t = Nil);
+                        t := Cons(x, ref Nil);
+                        q.rear := !t
+      | Nil -> assert (!(q.front) = Nil); 
+                q.front := Cons(x, ref Nil);
+                q.rear := !(q.front)
     let deq q = 
       match !(q.front) with
-      | Cons(h,t) -> 
-         (q.front := !t ;
+      | Cons(h, t) -> 
+          q.front := !t ;
           (match !t with
            | Nil -> q.rear := Nil
-           | Cons(_,_) -> ()); 
-          Some h)
+           | Cons(_, _) -> ()); 
+          Some h
       | Nil -> None
     let to_string q = 
       failwith "to_string not implemented"
@@ -288,9 +288,9 @@ appropriate argument. For instance, we can make an integer queue
 module: *)
 
 module IntQueue = MakeImpQueue (struct
-				  type t = int
-				  let to_string = string_of_int
-			        end) ;;
+				                          type t = int
+				                          let to_string = string_of_int
+                                end) ;;
 
 (* And now we can test it by enqueueing some elements and converting
 the queue to a string to make sure that the right elements are in
