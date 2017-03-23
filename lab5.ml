@@ -1,10 +1,9 @@
-(*********************************************************************
-
-			      CS51 Lab 5
-		Imperative Programming and References
+(*
+                              CS51 Lab 5
+               Imperative Programming and References
+                             Spring 2017
  *)
 
-   
 (*
 Objective:
 
@@ -12,9 +11,7 @@ This lab provides practice with reference types and their use in
 building mutable data structures and in imperative programming more
 generally. It also gives further practice in using modules to abstract
 data types.
-
-*********************************************************************)
-
+ *)
 
 (*====================================================================
 Part 1: Fun with references
@@ -25,18 +22,18 @@ type for the return value? What should the type for the function as a
 whole be? *)
 
    
-(* Now implement the function. (As usual, you shouldn't feel beholden
-to how the definition is introduced in the skeleton code below. For
-instance, you might want to add a "rec", or use a different argument
-list, or no argument list at all but binding to an anonymous function
-instead.) *)
+(* Now implement the function. (As usual, for this and succeeding
+exercises, you shouldn't feel beholden to how the definition is
+introduced in the skeleton code below. For instance, you might want to
+add a "rec", or use a different argument list, or no argument list at
+all but binding to an anonymous function instead.) *)
 
 let inc _ =
   failwith "inc not implemented" ;;
 
-(* Write a function remember that returns the last string that it was
-called with. The first time it is called, it should return the empty
-string.
+(* Write a function named remember that returns the last string that
+it was called with. The first time it is called, it should return the
+empty string.
 
 # remember "don't forget" ;;
 - : bytes = ""
@@ -64,15 +61,15 @@ can find it as early as the 1974 MacLISP manual (page 53).
 http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
 
 (What is LISP you ask? LISP is an untyped functional programming
-language based on the lambda calculus, invented by John McCarthy in
-1958, one of the most influential programming languages ever
-devised. You could do worse than spend some time learning the Scheme
-dialect of LISP, which, by the way, will be made much easier by having
-learned a typed functional language -- OCaml.)
+language based on Alonzo Church's lambda calculus, invented by John
+McCarthy in 1958, one of the most influential programming languages
+ever devised. You could do worse than spend some time learning the
+Scheme dialect of LISP, which, by the way, will be made much easier by
+having learned a typed functional language -- OCaml.)
 
 The gensym function takes a string and generates a new string by
-postfixing a unique number, which is incremented each time gensym is
-called.
+postfixing a unique number, which is initially 0 but is incremented
+each time gensym is called.
 
 For example,
 
@@ -92,7 +89,7 @@ project for CS51, so this is definitely not wasted effort.
 
 Complete the implementation of gensym. As usual, you shouldn't feel
 beholden to how the definition is introduced in the skeleton code
-below. (We'll stop mentioning this now, and forevermore.) *)
+below. (We'll stop mentioning this now.) *)
 
 let gensym (s : string) : string = 
   failwith "gensym not implemented" ;;
@@ -107,7 +104,8 @@ type 'a mlist =
   | Cons of 'a * ('a mlist ref) ;;
 
 (* Mutable lists are just like regular lists, except that the tail of
-each "cons" is a reference to a mutable list, so that it can be updated.
+each "cons" is a *reference* to a mutable list, so that it can be
+updated.
 
 Define a polymorphic function mlist_of_list that converts a regular
 list to a mutable list, with behavior like this:
@@ -120,7 +118,6 @@ val xs : bytes mlist =
 # let ys = mlist_of_list [1; 2; 3];;
 val ys : int mlist =
   Cons (1, {contents = Cons (2, {contents = Cons (3, {contents = Nil})})})
-
  *)
 
 let mlist_of_list (lst : 'a list) : 'a mlist =
@@ -158,11 +155,11 @@ about before you get started:
 
 Example of use:
 
-# let m1 = mlist_of_list [1;2;3];;
+# let m1 = mlist_of_list [1; 2; 3];;
 val m1 : int mlist =
   Cons (1, {contents = Cons (2, {contents = Cons (3, {contents = Nil})})})
 
-# let m2 = mlist_of_list [4;5;6];;
+# let m2 = mlist_of_list [4; 5; 6];;
 val m2 : int mlist =
   Cons (4, {contents = Cons (5, {contents = Cons (6, {contents = Nil})})})
 
@@ -218,7 +215,7 @@ module type IMP_QUEUE =
 In this part, you'll add functionality to imperative queues to allow
 converting queues to a string representation (sometimes referred to as
 "serialization"), useful for printing. The signature needs to be
-augmented first; we've done that here: *)
+augmented first; we've done that for you here: *)
 
 module type IMP_QUEUE =
   sig
@@ -243,8 +240,8 @@ Given the ability to convert the elements to strings, the to_string
 function should work by converting each element to a string in order
 separated by arrows " -> " and with a final end marker to mark the end
 of the queue "||". For instance, the queue containing integer elements
-1, 2, and 3 would convert to the string "1 -> 2 -> 3 -> ||" (as shown
-in the example below).
+1, 2, and 3 would serialize to the string "1 -> 2 -> 3 -> ||" (as
+shown in the example below).
 
 We've provided a functor for making imperative queues, which works
 almost identically to the final implementation from lecture (based on
@@ -253,10 +250,9 @@ functor argument. Your job is to complete the implementation by
 finishing the to_string function. (Read on below for an example of the
 use of the functor.)  *)
 
-module MakeImpQueue (A : sig
-			   type t
-			   val to_string : t -> string
-			 end) : (IMP_QUEUE with type elt = A.t) =
+module MakeImpQueue (A : sig type t
+                            val to_string : t -> string
+                          end) : (IMP_QUEUE with type elt = A.t) =
   struct
     type elt = A.t
     type mlist = Nil | Cons of elt * (mlist ref)
@@ -264,20 +260,20 @@ module MakeImpQueue (A : sig
     let empty () = {front = ref Nil; rear = ref Nil} 
     let enq x q = 
       match !(q.rear) with
-      | Cons(_h, t) -> assert (!t = Nil);
+      | Cons (_h, t) -> assert (!t = Nil);
                         t := Cons(x, ref Nil);
                         q.rear := !t
       | Nil -> assert (!(q.front) = Nil); 
-                q.front := Cons(x, ref Nil);
-                q.rear := !(q.front)
+               q.front := Cons(x, ref Nil);
+               q.rear := !(q.front)
     let deq q = 
       match !(q.front) with
-      | Cons(h, t) -> 
-          q.front := !t ;
-          (match !t with
-           | Nil -> q.rear := Nil
-           | Cons(_, _) -> ()); 
-          Some h
+      | Cons (h, t) -> 
+         q.front := !t ;
+         (match !t with
+          | Nil -> q.rear := Nil
+          | Cons(_, _) -> ()); 
+         Some h
       | Nil -> None
     let to_string q = 
       failwith "to_string not implemented"
@@ -288,8 +284,8 @@ appropriate argument. For instance, we can make an integer queue
 module: *)
 
 module IntQueue = MakeImpQueue (struct
-				                          type t = int
-				                          let to_string = string_of_int
+                                  type t = int
+                                  let to_string = string_of_int
                                 end) ;;
 
 (* And now we can test it by enqueueing some elements and converting
