@@ -143,7 +143,7 @@ slides.
 
  *)
 
-let rec length  =
+let rec length =
   let ctr = ref 0 in
   fun (m : 'a mlist) : int ->
     match m with
