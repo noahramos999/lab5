@@ -21,15 +21,15 @@ of incrementing the integer stored in the ref. What is an appropriate
 type for the return value? What should the type for the function as a
 whole be? *)
 
-   
+
 (* Now implement the function. (As usual, for this and succeeding
 exercises, you shouldn't feel beholden to how the definition is
 introduced in the skeleton code below. For instance, you might want to
 add a "rec", or use a different argument list, or no argument list at
 all but binding to an anonymous function instead.) *)
 
-let inc _ =
-  failwith "inc not implemented" ;;
+let inc (x : int ref) : unit =
+  x := !x + 1 ;;
 
 (* Write a function named remember that returns the last string that
 it was called with. The first time it is called, it should return the
@@ -49,8 +49,12 @@ This is probably the least functional function ever written.
 As usual, you shouldn't feel beholden to how the definition is
 introduced in the skeleton code below. *)
 
-let remember _ = 
-  failwith "remember not implemented" ;;
+let remember  =
+  let remember_store = ref "" in
+  fun (s : string) : string ->
+    let ret = !remember_store in
+    remember_store := s;
+    ret ;;
 
 (*====================================================================
 Part 2: Gensym
@@ -91,16 +95,19 @@ Complete the implementation of gensym. As usual, you shouldn't feel
 beholden to how the definition is introduced in the skeleton code
 below. (We'll stop mentioning this now.) *)
 
-let gensym (s : string) : string = 
-  failwith "gensym not implemented" ;;
+let gensym =
+  let ctr = ref (-1) in
+  fun (s : string) : string ->
+    inc ctr;
+    s ^ (string_of_int !ctr) ;;
 
 (*====================================================================
 Part 3: Appending mutable lists
 
 Recall the definition of the mutable list type from lecture: *)
 
-type 'a mlist = 
-  | Nil 
+type 'a mlist =
+  | Nil
   | Cons of 'a * ('a mlist ref) ;;
 
 (* Mutable lists are just like regular lists, except that the tail of
@@ -120,8 +127,10 @@ val ys : int mlist =
   Cons (1, {contents = Cons (2, {contents = Cons (3, {contents = Nil})})})
  *)
 
-let mlist_of_list (lst : 'a list) : 'a mlist =
-  failwith "mlist_of_list not implemented" ;;
+let rec mlist_of_list (lst : 'a list) : 'a mlist =
+  match lst with
+  | hd::tl -> Cons (hd, {contents = mlist_of_list tl})
+  | _ -> Nil ;;
 
 (* Define a function length to compute the length of an mlist. Try to
 do this without looking at the solution that is given in the lecture
@@ -134,8 +143,12 @@ slides.
 
  *)
 
-let length (m : 'a mlist) : int = 
-  failwith "length not implemented" ;;
+let rec length  =
+  let ctr = ref 0 in
+  fun (m : 'a mlist) : int ->
+    match m with
+    | Cons (_, tl) -> inc ctr; length !tl
+    | Nil -> !ctr ;;
 
 (* What is the time complexity of the length function in O() notation
 in terms of the length of its list argument? *)
@@ -184,8 +197,10 @@ Cons (1,
           {contents = Cons (5, {contents = Cons (6, {contents = Nil})})})})})})
  *)
 
-let mappend _ = 
-  failwith "mappend not implemented" ;;
+let rec mappend (x : 'a mlist) (y : 'a mlist) : unit =
+  match x with
+  | Cons (_, tl) -> if !tl <> Nil then mappend !tl y else tl := y
+  | Nil -> raise (Invalid_argument "empty");;
 
 (* What happens when you evaluate the following expressions
 sequentially in order?
@@ -257,26 +272,28 @@ module MakeImpQueue (A : sig type t
     type elt = A.t
     type mlist = Nil | Cons of elt * (mlist ref)
     type queue = {front: mlist ref ; rear: mlist ref}
-    let empty () = {front = ref Nil; rear = ref Nil} 
-    let enq x q = 
+    let empty () = {front = ref Nil; rear = ref Nil}
+    let enq x q =
       match !(q.rear) with
       | Cons (_h, t) -> assert (!t = Nil);
                         t := Cons(x, ref Nil);
                         q.rear := !t
-      | Nil -> assert (!(q.front) = Nil); 
+      | Nil -> assert (!(q.front) = Nil);
                q.front := Cons(x, ref Nil);
                q.rear := !(q.front)
-    let deq q = 
+    let deq q =
       match !(q.front) with
-      | Cons (h, t) -> 
+      | Cons (h, t) ->
          q.front := !t ;
          (match !t with
           | Nil -> q.rear := Nil
-          | Cons(_, _) -> ()); 
+          | Cons(_, _) -> ());
          Some h
       | Nil -> None
-    let to_string q = 
-      failwith "to_string not implemented"
+    let rec to_string q =
+      match deq q with
+      | Some x -> A.to_string x ^ " -> " ^ to_string q
+      | None -> "||"
   end ;;
 
 (* To build an imperative queue, we apply the functor to an
@@ -292,7 +309,7 @@ module IntQueue = MakeImpQueue (struct
 the queue to a string to make sure that the right elements are in
 there. *)
 
-let test () = 
+let test () =
   let open IntQueue in
   let q = empty () in
   enq 1 q;
@@ -300,7 +317,7 @@ let test () =
   enq 3 q;
   to_string q ;;
 
-(* Running the test function should have the following behavior: 
+(* Running the test function should have the following behavior:
 
 # test () ;;
 - : bytes = "1 -> 2 -> 3 -> ||"
