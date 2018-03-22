@@ -143,12 +143,10 @@ slides.
 
  *)
 
-let rec length =
-  let ctr = ref 0 in
-  fun (m : 'a mlist) : int ->
-    match m with
-    | Cons (_, tl) -> inc ctr; length !tl
-    | Nil -> !ctr ;;
+let rec length (m : 'a mlist) : int=
+  match m with
+  | Cons (_, tl) -> 1 + length !tl
+  | Nil -> 0 ;;
 
 (* What is the time complexity of the length function in O() notation
 in terms of the length of its list argument? *)
